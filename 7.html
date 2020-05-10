@@ -1,0 +1,138 @@
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>事件收集</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Search",
+        "esri/layers/GraphicsLayer",
+        "esri/widgets/Sketch",
+        "esri/widgets/Editor"
+      ], function(
+        Map,
+        MapView,
+        FeatureLayer,
+        Legend,
+        ScaleBar,
+        Search,
+        GraphicsLayer,
+        Sketch,
+        Editor
+      ) {
+        var layer = new FeatureLayer({
+          url:
+            "http://www.arcgisonline.cn/server/rest/services/Hosted/%E6%8A%A5%E5%91%8A%E9%9D%9E%E7%B4%A7%E6%80%A5%E4%BA%8B%E4%BB%B6/FeatureServer"
+        });
+
+        var graphicsLayer = new GraphicsLayer();
+        var map = new Map({
+          basemap: "osm"
+        });
+        map.layers.add(layer, graphicsLayer);
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 5,
+          center: [105, 35]
+        });
+
+        var legend = new Legend({
+          view: view,
+          style: "object",
+          layerInfos: [
+            {
+              layer: layer,
+              title: "事件收集"
+            }
+          ]
+        });
+        view.ui.add(legend, "bottom-left");
+
+        var scaleBar = new ScaleBar({
+          view: view,
+          style: "line",
+          unit: "metric"
+        });
+        view.ui.add(scaleBar, {
+          position: "bottom-right"
+        });
+
+        var sear = new Search({
+          view: view
+        });
+        view.ui.add(sear, {
+          position: "top-right",
+          index: 2
+        });
+
+        var coordsWidget = document.createElement("div");
+        coordsWidget.id = "coordsWidget";
+        coordsWidget.className = "esri-widget esri-component";
+        coordsWidget.style.padding = "7px 15px 5px";
+        view.ui.add(coordsWidget, "bottom-right");
+        function showCoordinates(pt) {
+          var coords =
+            "经纬度：  " +
+            pt.latitude.toFixed(3) +
+            " " +
+            pt.longitude.toFixed(3) +
+            " | 比例尺： " +
+            Math.round(view.scale * 1) / 1 +
+            " | 缩放比例 ： " +
+            view.zoom;
+          coordsWidget.innerHTML = coords;
+        }
+        view.watch("stationary", function(isStationary) {
+          showCoordinates(view.center);
+        });
+        view.on("pointer-move", function(evt) {
+          showCoordinates(view.toMap({ x: evt.x, y: evt.y }));
+        });
+
+        var sketch = new Sketch({
+          view: view,
+          layer: graphicsLayer
+        });
+        view.ui.add(sketch, "top-right");
+
+        var editorWidget = new Editor({
+          view: view
+        });
+        view.ui.add(editorWidget, "top-right");
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="a">
+      <h1 id="a" >事件收集</h1>
+    </div>
+    <div id="viewDiv"></div>
+  </body>
+</html>
